@@ -24,7 +24,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/users/**").permitAll() // Allow access to user endpoints
                         .requestMatchers("/api/products/**").permitAll() // Allow access to product endpoints
-                        .requestMatchers("/api/clients/**").permitAll() // Allow access to client endpoints
+                        .requestMatchers("/api/clients/**").permitAll()
+                        .requestMatchers("/api/proveedores**").permitAll()
+                        .requestMatchers("/api/detalle-ventas**").permitAll()
+                        .requestMatchers("/api/ventas**").permitAll()// Allow access to client endpoints
                         .anyRequest().authenticated()
                 );
         return http.build();

@@ -24,12 +24,15 @@ public class ProductosService {
         return productoRepository.findAll();
     }
 
-    public Producto findById(Long id) {
+    public Producto findById(String id) {
         return productoRepository.findById(id).orElse(null);
     }
 
 
     public Message save(Producto producto) {
+        if (isProductNameExists(producto.getNombre())) {
+            return Message.builder().message("El nombre del producto ya existe").data(null).build();
+        }
         Producto existingProducto = productoRepository.findById(producto.getCodigo()).orElse(null);
         return existingProducto != null ? Message.builder()
                 .message("Producto actualizado")
@@ -46,8 +49,6 @@ public class ProductosService {
                         .message("Producto guardado")
                         .data(productoRepository.save(producto))
                         .build();
-
-
     }
 
     public Message saveProductosFromBase64(String base64) {
@@ -60,7 +61,7 @@ public class ProductosService {
             List<Producto> productos = new ArrayList<>();
             for (CSVRecord record : records) {
                 Producto producto = Producto.builder()
-                        .codigo(Long.parseLong(record.get("codigo")))
+                        .codigo(record.get("codigo"))
                         .nombre(record.get("nombre"))
                         .nitProveedor(Long.parseLong(record.get("nitProveedor")))
                         .precioCompra(Double.parseDouble(record.get("precioCompra")))
@@ -72,6 +73,9 @@ public class ProductosService {
             }
 
             for (Producto producto : productos) {
+                if (isProductNameExists(producto.getNombre())) {
+                    return Message.builder().message("El nombre del producto ya existe: " + producto.getNombre()).data(null).build();
+                }
                 Producto existingProducto = productoRepository.findById(producto.getCodigo()).orElse(null);
                 if (existingProducto != null) {
                     existingProducto.toBuilder().cantidad(existingProducto.getCantidad() + producto.getCantidad()).build();
@@ -85,6 +89,10 @@ public class ProductosService {
         } catch (IOException e) {
             return Message.builder().message("Error al procesar el archivo CSV").data(null).build();
         }
+    }
+
+    private boolean isProductNameExists(String nombre) {
+        return productoRepository.findAll().stream().anyMatch(producto -> producto.getNombre().equalsIgnoreCase(nombre));
     }
 }
 
